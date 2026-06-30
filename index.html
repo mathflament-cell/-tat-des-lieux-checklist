@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Aide-mémoire EDL</title>
+<style>
+  :root{
+    --ink:#1c1b18;
+    --paper:#f4f0e8;
+    --paper-dim:#ece6d8;
+    --rule:#d9d0bc;
+
+    --c1:#3a6b5e; /* Avant l'état des lieux - vert sauge profond */
+    --c1-bg:#e3ece8;
+    --c2:#a45c2e; /* Début EDL Administratif - terre cuite */
+    --c2-bg:#f2e6da;
+    --c3:#3d5a80; /* Remarques générales - bleu ardoise */
+    --c3-bg:#e2e8ef;
+    --c4:#8a4f7d; /* Préliminaires dictées - prune */
+    --c4-bg:#ece1e9;
+    --c5:#7a6a1f; /* Dictée EDL - ocre */
+    --c5-bg:#f0ecd9;
+
+    --module-accent:#5b5446;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:-apple-system, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
+    line-height:1.45;
+    -webkit-tap-highlight-color:transparent;
+    padding:env(safe-area-inset-top) env(safe-area-inset-right) 60px env(safe-area-inset-left);
+  }
+
+  header{
+    padding:28px 20px 18px;
+    border-bottom:2px solid var(--ink);
+    background:var(--paper);
+    position:sticky;
+    top:0;
+    z-index:10;
+  }
+  header h1{
+    margin:0;
+    font-size:1.5rem;
+    font-weight:700;
+    letter-spacing:-0.01em;
+  }
+  header p{
+    margin:4px 0 0;
+    font-size:0.92rem;
+    color:#5a5648;
+  }
+
+  main{
+    max-width:760px;
+    margin:0 auto;
+    padding:18px 16px 80px;
+  }
+
+  /* === Section accordéon principale === */
+  .section{
+    border:1px solid var(--rule);
+    border-left-width:7px;
+    border-radius:10px;
+    margin-bottom:14px;
+    background:#fff;
+    overflow:hidden;
+    transition:box-shadow .2s ease;
+  }
+  .section[open]{
+    box-shadow:0 2px 10px rgba(0,0,0,0.06);
+  }
+  .section:nth-of-type(1){ border-left-color:var(--c1); }
+  .section:nth-of-type(2){ border-left-color:var(--c2); }
+  .section:nth-of-type(3){ border-left-color:var(--c3); }
+  .section:nth-of-type(4){ border-left-color:var(--c4); }
+  .section:nth-of-type(5){ border-left-color:var(--c5); }
+
+  .section summary{
+    list-style:none;
+    cursor:pointer;
+    padding:18px 18px;
+    font-size:1.15rem;
+    font-weight:700;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+    user-select:none;
+    -webkit-user-select:none;
+    min-height:30px;
+  }
+  .section summary::-webkit-details-marker{ display:none; }
+
+  .section:nth-of-type(1) summary{ background:var(--c1-bg); color:var(--c1); }
+  .section:nth-of-type(2) summary{ background:var(--c2-bg); color:var(--c2); }
+  .section:nth-of-type(3) summary{ background:var(--c3-bg); color:var(--c3); }
+  .section:nth-of-type(4) summary{ background:var(--c4-bg); color:var(--c4); }
+  .section:nth-of-type(5) summary{ background:var(--c5-bg); color:var(--c5); }
+
+  .chevron{
+    flex:0 0 auto;
+    width:22px; height:22px;
+    transition:transform .25s ease;
+  }
+  .section[open] .chevron{ transform:rotate(180deg); }
+
+  .section-body{
+    padding:6px 20px 22px;
+  }
+
+  /* liste simple de points */
+  .points{
+    list-style:none;
+    margin:0;
+    padding:0;
+  }
+  .points li{
+    padding:11px 0;
+    border-bottom:1px solid var(--paper-dim);
+    font-size:1.05rem;
+  }
+  .points li:last-child{ border-bottom:none; }
+  .points li.placeholder{
+    color:#9a9483;
+    font-style:italic;
+  }
+
+  /* sous-groupes thématiques à l'intérieur d'une section */
+  .group-title{
+    font-size:0.78rem;
+    font-weight:700;
+    text-transform:uppercase;
+    letter-spacing:0.05em;
+    color:#8a8470;
+    margin:20px 0 4px;
+  }
+  .group-title:first-child{ margin-top:8px; }
+
+  /* liste à cocher (cas particulier, ex. section 1) */
+  .check-points{
+    list-style:none;
+    margin:0;
+    padding:0;
+  }
+  .check-points li{
+    border-bottom:1px solid var(--paper-dim);
+  }
+  .check-points li:last-child{ border-bottom:none; }
+  .check-points label{
+    display:flex;
+    align-items:flex-start;
+    gap:12px;
+    padding:12px 2px;
+    cursor:pointer;
+    font-size:1.04rem;
+    -webkit-user-select:none;
+    user-select:none;
+  }
+  .check-points input[type=checkbox]{
+    appearance:none;
+    -webkit-appearance:none;
+    flex:0 0 auto;
+    width:24px;
+    height:24px;
+    margin-top:1px;
+    border:2px solid var(--c1);
+    border-radius:6px;
+    background:#fff;
+    cursor:pointer;
+    position:relative;
+    transition:background .15s ease, border-color .15s ease;
+  }
+  .check-points input[type=checkbox]:checked{
+    background:var(--c1);
+    border-color:var(--c1);
+  }
+  .check-points input[type=checkbox]:checked::after{
+    content:"";
+    position:absolute;
+    left:7px; top:3px;
+    width:6px; height:11px;
+    border:solid #fff;
+    border-width:0 2.5px 2.5px 0;
+    transform:rotate(45deg);
+  }
+  .check-points input[type=checkbox]:focus-visible{
+    outline:3px solid #2563eb;
+    outline-offset:2px;
+  }
+  .check-points span.label-text{
+    flex:1;
+    transition:color .15s ease, opacity .15s ease;
+  }
+  .check-points li.checked span.label-text{
+    color:#9a9483;
+    text-decoration:line-through;
+    opacity:0.75;
+  }
+
+  .section:nth-of-type(2) .check-points input[type=checkbox]{ border-color:var(--c2); }
+  .section:nth-of-type(2) .check-points input[type=checkbox]:checked{ background:var(--c2); border-color:var(--c2); }
+  .section:nth-of-type(3) .check-points input[type=checkbox]{ border-color:var(--c3); }
+  .section:nth-of-type(3) .check-points input[type=checkbox]:checked{ background:var(--c3); border-color:var(--c3); }
+  .section:nth-of-type(4) .check-points input[type=checkbox]{ border-color:var(--c4); }
+  .section:nth-of-type(4) .check-points input[type=checkbox]:checked{ background:var(--c4); border-color:var(--c4); }
+  .section:nth-of-type(5) .check-points input[type=checkbox]{ border-color:var(--c5); }
+  .section:nth-of-type(5) .check-points input[type=checkbox]:checked{ background:var(--c5); border-color:var(--c5); }
+
+  /* === Modules (sous-blocs dans Dictée EDL) === */
+  #modules-list{
+    margin-top:4px;
+  }
+  .module{
+    border:1px solid var(--rule);
+    border-left:5px solid var(--module-accent);
+    border-radius:8px;
+    margin:14px 0;
+    background:var(--paper);
+  }
+  .module > summary{
+    list-style:none;
+    cursor:pointer;
+    padding:13px 14px;
+    font-size:1.02rem;
+    font-weight:600;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    user-select:none;
+  }
+  .module > summary::-webkit-details-marker{ display:none; }
+  .module .chevron{ width:18px; height:18px; }
+
+  .module-body{
+    padding:4px 16px 16px;
+  }
+
+  .submodule{
+    border:1px solid var(--rule);
+    border-left:4px solid #9c8f6e;
+    border-radius:7px;
+    margin:10px 0 10px 14px;
+    background:#fff;
+  }
+  .submodule > summary{
+    list-style:none;
+    cursor:pointer;
+    padding:11px 13px;
+    font-size:0.96rem;
+    font-weight:600;
+    color:#5b5446;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+    user-select:none;
+  }
+  .submodule > summary::-webkit-details-marker{ display:none; }
+  .submodule .chevron{ width:16px; height:16px; }
+  .submodule-body{ padding:2px 14px 14px; }
+
+  .module-actions, .submodule-actions{
+    display:flex;
+    gap:8px;
+    margin-top:10px;
+  }
+
+  /* boutons tactiles */
+  button{
+    font-family:inherit;
+    border:none;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+  }
+  .btn{
+    background:var(--ink);
+    color:var(--paper);
+    padding:10px 16px;
+    border-radius:7px;
+    font-size:0.92rem;
+    font-weight:600;
+  }
+  .btn:active{ opacity:0.8; }
+  .btn-outline{
+    background:transparent;
+    color:var(--ink);
+    border:1.5px solid var(--ink);
+    padding:8.5px 14px;
+    border-radius:7px;
+    font-size:0.88rem;
+    font-weight:600;
+  }
+  .btn-danger{
+    background:transparent;
+    color:#a13b2e;
+    border:1.5px solid #a13b2e;
+    padding:7px 12px;
+    border-radius:7px;
+    font-size:0.82rem;
+    font-weight:600;
+  }
+  .btn-small{
+    padding:7px 12px;
+    font-size:0.85rem;
+  }
+
+  .add-module-bar{
+    display:flex;
+    gap:10px;
+    margin:18px 0 6px;
+    flex-wrap:wrap;
+  }
+  .add-module-bar input[type=text]{
+    flex:1;
+    min-width:160px;
+    padding:11px 13px;
+    border:1.5px solid var(--rule);
+    border-radius:7px;
+    font-size:1rem;
+    font-family:inherit;
+    background:#fff;
+  }
+  .add-module-bar input[type=text]:focus{
+    outline:2px solid var(--c5);
+    outline-offset:1px;
+  }
+
+  .module-textarea{
+    width:100%;
+    min-height:70px;
+    border:1px solid var(--rule);
+    border-radius:7px;
+    padding:10px 12px;
+    font-family:inherit;
+    font-size:0.98rem;
+    resize:vertical;
+    background:#fff;
+    color:var(--ink);
+  }
+  .module-textarea:focus{
+    outline:2px solid var(--module-accent);
+    outline-offset:1px;
+  }
+
+  .empty-hint{
+    color:#9a9483;
+    font-size:0.9rem;
+    font-style:italic;
+    margin:8px 0 0;
+  }
+
+  /* accessibilité focus clavier */
+  summary:focus-visible, button:focus-visible{
+    outline:3px solid #2563eb;
+    outline-offset:2px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    .chevron{ transition:none; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Aide-mémoire — États des lieux</h1>
+  <p>Checklist de référence · tap pour déplier une section</p>
+</header>
+
+<main>
+
+  <!-- 1. Avant l'état des lieux -->
+  <details class="section" open>
+    <summary>
+      <span>Avant l'état des lieux</span>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+    </summary>
+    <div class="section-body">
+
+      <p class="group-title">Dossier</p>
+      <ul class="check-points">
+        <li><label><input type="checkbox"><span class="label-text">Déterminer et noter le numéro de dossier</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Adresse exacte du bien</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Heure convenue du rendez-vous</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Accès au logement déterminé (qui détient les clés ?)</span></label></li>
+      </ul>
+
+      <p class="group-title">Paiements</p>
+      <ul class="check-points">
+        <li><label><input type="checkbox"><span class="label-text">Vérifier le paiement côté partie propriétaire</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Vérifier le paiement côté partie locataire</span></label></li>
+      </ul>
+
+      <p class="group-title">Documents à imprimer / demander</p>
+      <ul class="check-points">
+        <li><label><input type="checkbox"><span class="label-text">Imprimer la feuille de transition de locataire — Eau</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Imprimer la feuille de transition de locataire — Énergie</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Imprimer la feuille de transition de locataire — Gaz</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Demander le bail</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Demander le type de chauffage</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Demander depuis quand date la dernière rénovation</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Demander la date de pose des joints</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Demander la date du dernier entretien du sol</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Demander la date de la dernière peinture des murs</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Demander l'attestation d'entretien VMC</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Demander l'attestation d'entretien du chauffage</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Demander l'attestation d'entretien de l'alarme</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Demander l'attestation de ramonage de la chaudière</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Demander l'attestation d'entretien de l'adoucisseur</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Demander les attestations des équipements spécifiques</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Demander le numéro de cave</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Demander le numéro de place de parking</span></label></li>
+      </ul>
+
+      <p class="group-title">Matériel à préparer</p>
+      <ul class="check-points">
+        <li><label><input type="checkbox"><span class="label-text">Tablette rechargée</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">PC rechargé</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">GSM rechargé</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Chargeurs (tablette, PC, GSM) avec soi</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Mètre</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Dictaphone chargé</span></label></li>
+      </ul>
+
+    </div>
+  </details>
+
+  <!-- 2. Début EDL - Administratif -->
+  <details class="section">
+    <summary>
+      <span>Début EDL — Administratif</span>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+    </summary>
+    <div class="section-body">
+
+      <p class="group-title">Accueil et cadre du rendez-vous</p>
+      <ul class="check-points">
+        <li><label><input type="checkbox"><span class="label-text">Vérifier l'adresse du bien</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Vérifier les coordonnées des parties (propriétaire et locataire)</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Expliquer le but d'un état des lieux</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Faire signer l'ordre de mission</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Demander aux parties de ne pas faire de bruit durant la dictée</span></label></li>
+      </ul>
+
+      <p class="group-title">Paiement</p>
+      <ul class="check-points">
+        <li><label><input type="checkbox"><span class="label-text">Faire payer les parties</span></label></li>
+      </ul>
+
+      <p class="group-title">Compteurs</p>
+      <ul class="check-points">
+        <li><label><input type="checkbox"><span class="label-text">Faire des photos du compteur d'eau</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Faire des photos du compteur de gaz</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Faire des photos du compteur d'électricité</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Noter les index (eau, gaz, électricité)</span></label></li>
+      </ul>
+
+      <p class="group-title">Clés</p>
+      <ul class="check-points">
+        <li><label><input type="checkbox"><span class="label-text">Comptabiliser toutes les clés du logement</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Comptabiliser les clés de la porte d'entrée</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Comptabiliser les clés de la boîte aux lettres</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Comptabiliser les badges</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Comptabiliser les télécommandes</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Comptabiliser les clés de cave</span></label></li>
+      </ul>
+
+      <p class="group-title">Délais à communiquer aux parties</p>
+      <ul class="check-points">
+        <li><label><input type="checkbox"><span class="label-text">Expliquer que le locataire dispose d'1 mois après la réception du rapport d'état des lieux pour ajouter des informations manquantes</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Expliquer que les parties disposent de 7 jours à partir d'aujourd'hui pour faire un retour sur toute remarque concernant un dysfonctionnement (plomberie, chauffage, four, etc.)</span></label></li>
+      </ul>
+
+      <p class="group-title">Limites et responsabilités à rappeler</p>
+      <ul class="check-points">
+        <li><label><input type="checkbox"><span class="label-text">Préciser que ce qui est d'ordre structurel (fissures, défauts de construction) n'est pas à charge du locataire</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Rappeler la responsabilité des parties quant à l'entretien des équipements spécifiques</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Préciser que chaque élément sera testé dans la mesure du possible</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Préciser que l'expert expertise uniquement les parties visibles</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Préciser que s'il y a un meuble, ce qui se trouve derrière est supposé conforme aux remarques générales</span></label></li>
+        <li><label><input type="checkbox"><span class="label-text">Préciser que les installations sont supposées en état de fonctionnement normal, sauf remarque contraire dans le rapport</span></label></li>
+      </ul>
+
+    </div>
+  <details class="section">
+    <summary>
+      <span>Remarques générales</span>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+    </summary>
+    <div class="section-body">
+
+      <p class="group-title">Constat général</p>
+      <ul class="points">
+        <li>Parties présentes lors du constat</li>
+        <li>Propreté : excellent état, poussiéreux, nettoyage complet, nettoyage partiel</li>
+        <li>Lieux occupés ou inoccupés</li>
+        <li>Lieux encombrés ou non</li>
+        <li>Présence de meubles ou non — si oui, à qui appartiennent-ils ?</li>
+        <li>Type de bien (studio, maison et chambre, duplex, appartement, etc.)</li>
+      </ul>
+
+      <p class="group-title">Décors — éléments à passer en revue</p>
+      <ul class="points">
+        <li>Plafonds : couleur, type de matériaux, ornement</li>
+        <li>Murs : couleurs, recouvrement, état général (n'appelle pas de remarque), état du recouvrement de la peinture, présence de coups, éraillements, irrégularités</li>
+        <li>Plinthes : taille, couleurs</li>
+        <li>Sols : dépareillés ou non, matériaux, couleur</li>
+        <li>Portes intérieures : couleur, matériaux</li>
+        <li>Radiateurs : propreté, type, état de la vanne</li>
+        <li>Châssis de fenêtre : matériaux, propreté, couleur</li>
+        <li>Électricité : type d'interrupteur, marque, prises, couleurs</li>
+      </ul>
+
+    </div>
+  <details class="section">
+    <summary>
+      <span>Préliminaires dictées</span>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+    </summary>
+    <div class="section-body">
+      <ul class="points">
+        <li class="placeholder">Point 1 — exemple</li>
+        <li class="placeholder">Point 2 — exemple</li>
+      </ul>
+    </div>
+  </details>
+
+  <!-- 5. Dictée EDL — avec modules dynamiques -->
+  <details class="section">
+    <summary>
+      <span>Dictée EDL</span>
+      <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+    </summary>
+    <div class="section-body">
+      <ul class="points">
+        <li class="placeholder">Point 1 — exemple (texte fixe de référence)</li>
+      </ul>
+
+      <div id="modules-list"></div>
+      <p id="empty-hint" class="empty-hint">Aucun module pour l'instant — ajoutez une pièce ci-dessous (cuisine, chambre, séjour…).</p>
+
+      <div class="add-module-bar">
+        <input type="text" id="new-module-name" placeholder="Nom de la pièce (ex. Cuisine)">
+        <button class="btn" id="add-module-btn">+ Ajouter une pièce</button>
+      </div>
+    </div>
+  </details>
+
+</main>
+
+<script>
+(function(){
+  const list = document.getElementById('modules-list');
+  const emptyHint = document.getElementById('empty-hint');
+  const input = document.getElementById('new-module-name');
+  const addBtn = document.getElementById('add-module-btn');
+
+  function chevronSVG(size){
+    return `<svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="${size}" height="${size}"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
+  }
+
+  function updateEmptyHint(){
+    emptyHint.style.display = list.children.length ? 'none' : 'block';
+  }
+
+  function createModule(name){
+    const mod = document.createElement('details');
+    mod.className = 'module';
+    mod.open = true;
+
+    const summary = document.createElement('summary');
+    summary.innerHTML = `<span class="module-title-text">${escapeHTML(name)}</span>` + chevronSVG(18);
+    mod.appendChild(summary);
+
+    const body = document.createElement('div');
+    body.className = 'module-body';
+
+    const textarea = document.createElement('textarea');
+    textarea.className = 'module-textarea';
+    textarea.placeholder = 'Notes / points pour ' + name + '…';
+    body.appendChild(textarea);
+
+    const actions = document.createElement('div');
+    actions.className = 'module-actions';
+
+    const addSubBtn = document.createElement('button');
+    addSubBtn.className = 'btn-outline btn-small';
+    addSubBtn.textContent = '+ Sous-module';
+    actions.appendChild(addSubBtn);
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn-danger';
+    delBtn.textContent = 'Supprimer la pièce';
+    actions.appendChild(delBtn);
+
+    body.appendChild(actions);
+
+    const subList = document.createElement('div');
+    subList.className = 'submodules-list';
+    body.appendChild(subList);
+
+    mod.appendChild(body);
+
+    addSubBtn.addEventListener('click', function(){
+      const subName = prompt('Nom du sous-module (ex. Salle de bain attenante)');
+      if(subName && subName.trim()){
+        subList.appendChild(createSubmodule(subName.trim()));
+      }
+    });
+
+    delBtn.addEventListener('click', function(){
+      if(confirm('Supprimer la pièce "' + name + '" et tout son contenu ?')){
+        mod.remove();
+        updateEmptyHint();
+      }
+    });
+
+    return mod;
+  }
+
+  function createSubmodule(name){
+    const sub = document.createElement('details');
+    sub.className = 'submodule';
+    sub.open = true;
+
+    const summary = document.createElement('summary');
+    summary.innerHTML = `<span>${escapeHTML(name)}</span>` + chevronSVG(16);
+    sub.appendChild(summary);
+
+    const body = document.createElement('div');
+    body.className = 'submodule-body';
+
+    const textarea = document.createElement('textarea');
+    textarea.className = 'module-textarea';
+    textarea.placeholder = 'Notes pour ' + name + '…';
+    body.appendChild(textarea);
+
+    const actions = document.createElement('div');
+    actions.className = 'submodule-actions';
+
+    const delBtn = document.createElement('button');
+    delBtn.className = 'btn-danger';
+    delBtn.textContent = 'Supprimer';
+    actions.appendChild(delBtn);
+
+    body.appendChild(actions);
+    sub.appendChild(body);
+
+    delBtn.addEventListener('click', function(){
+      if(confirm('Supprimer le sous-module "' + name + '" ?')){
+        sub.remove();
+      }
+    });
+
+    return sub;
+  }
+
+  function escapeHTML(str){
+    const div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function addModuleFromInput(){
+    const name = input.value.trim();
+    if(!name) { input.focus(); return; }
+    list.appendChild(createModule(name));
+    input.value = '';
+    updateEmptyHint();
+    input.focus();
+  }
+
+  addBtn.addEventListener('click', addModuleFromInput);
+  input.addEventListener('keydown', function(e){
+    if(e.key === 'Enter'){ addModuleFromInput(); }
+  });
+
+  updateEmptyHint();
+
+  // Gestion visuelle des listes à cocher (ex. section "Avant l'état des lieux")
+  document.querySelectorAll('.check-points input[type=checkbox]').forEach(function(cb){
+    cb.addEventListener('change', function(){
+      cb.closest('li').classList.toggle('checked', cb.checked);
+    });
+  });
+})();
+</script>
+
+</body>
+</html>
