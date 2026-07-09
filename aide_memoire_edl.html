@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aide-mémoire EDL</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#F5F0E8;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;min-height:100vh;}
+#app{display:flex;flex-direction:column;min-height:100vh;}
+#bar{background:#F5F0E8;border-bottom:1.5px solid #D4C9B0;padding:10px 14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;position:sticky;top:0;z-index:50;}
+#bar h1{font-size:14px;font-weight:700;color:#1A2744;flex-shrink:0;}
+#bc{display:flex;align-items:center;gap:4px;flex:1;flex-wrap:wrap;overflow:hidden;}
+.bi{font-size:11px;color:#1A2744;background:#EAE5D8;border-radius:10px;padding:2px 8px;cursor:pointer;border:1px solid #C8BFA8;white-space:nowrap;}
+.bi:hover{background:#DDD6C5;}
+.bs{color:#A39A8C;font-size:10px;}
+#bk{background:#1A2744;color:#F5F0E8;border:none;border-radius:7px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;flex-shrink:0;}
+#bk:disabled{opacity:.3;cursor:default;}
+#src{padding:5px 10px;border-radius:7px;border:1px solid #C8BFA8;background:#FDFAF4;font-size:12px;color:#1A2744;width:150px;}
+#content{flex:1;padding:14px;}
+.lvl{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#8B7355;margin-bottom:10px;}
+.nodes{display:flex;flex-direction:column;gap:7px;}
+.nd{display:flex;align-items:stretch;border-radius:10px;border:1.5px solid #C8BFA8;background:#FDFAF4;cursor:pointer;overflow:hidden;-webkit-tap-highlight-color:transparent;}
+.nd:active{background:#EDE8DE;}
+.nl{width:5px;flex-shrink:0;background:#C8BFA8;}
+.nd.hc .nl{background:#1A2744;}
+.nd.sr .nl{background:#C08A2E;}
+.nb{flex:1;padding:11px 13px;}
+.nm{font-size:14px;font-weight:600;color:#1A2744;line-height:1.3;}
+.ns{font-size:11px;color:#6B6258;margin-top:3px;}
+.na{display:flex;align-items:center;padding:0 13px;flex-shrink:0;}
+.btn{width:28px;height:28px;border-radius:50%;border:1.5px solid #1A2744;background:transparent;color:#1A2744;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;}
+.nd.lf .btn{border-color:#C8BFA8;color:#8B7355;font-size:12px;font-weight:500;}
+.dd{font-size:12px;color:#1A2744;padding:8px 13px 11px;line-height:1.5;border-top:1px solid #EAE5D8;background:#F8F5EE;}
+.hint{text-align:center;padding:40px 20px;color:#8B7355;font-size:14px;}
+</style>
+</head>
+<body>
+<div id="app">
+<div id="bar">
+  <button id="bk" onclick="goBack()">← Retour</button>
+  <div id="bc"></div>
+  <input id="src" placeholder="Rechercher…" oninput="doSearch(this.value)" type="search">
+</div>
+<div id="content">
+  <div class="lvl" id="lvl">Catégories principales</div>
+  <div class="nodes" id="nodes"></div>
+</div>
+</div>
+<script>
+const T={label:"État des lieux",children:[
+{label:"Plafonds",sub:"Matériaux · Peinture · Ornements · Points lumineux · Défauts",children:[
+{label:"Matériaux",children:[
+{label:"Peinture sur enduit",desc:"Enduit plâtré recouvert de peinture. Lisse, taloché ou brossé."},
+{label:"Faux-plafond suspendu",desc:"Ajouté sous le plafond d'origine via suspentes. Espace entre les deux = plénum."},
+{label:"Faux-plafond tendu",desc:"Membrane PVC ou polyester tendue sur rail périphérique. Aspect lisse, brillant ou mat."},
+{label:"Plafond à la française",desc:"Solives apparentes et lambris de bois entre les poutres. Caractère ancien."},
+{label:"Hourdis béton brut",desc:"Plafond béton non peint. Courant dans les constructions contemporaines."},
+{label:"Lambris bois / PVC",desc:"Lames posées en planches jointives. Vérifier vernis et jointures."},
+{label:"Caissons",desc:"Structure de bois formant des cases décoratives. Caractère classique."},
+{label:"Plénum",desc:"Espace technique entre plafond d'origine et faux-plafond."},
+]},
+{label:"État de la peinture",children:[
+{label:"Neuve — très belle présentation",desc:"Couche fraîche, couvrante, homogène."},
+{label:"Récente — belle présentation",desc:"Légère perte de brillance, sans usure réelle."},
+{label:"Terne — légèrement grisonnante",desc:"Peinture ayant perdu son éclat."},
+{label:"Défraîchie — peu couvrante",desc:"Traces de rouleau visibles, couverture insuffisante."},
+{label:"Appliquée sur irrégularités",desc:"Aspérités ou trous rebouchés visibles sous la peinture."},
+{label:"Amortie",desc:"En fin de vie, +6 ans. Non imputable au locataire."},
+]},
+{label:"Ornements",children:[
+{label:"Rosace centrale",desc:"Ornement circulaire en plâtre autour du point d'attache du luminaire."},
+{label:"Moulures périphériques / corniches",desc:"Reliefs en plâtre courant le long de la jonction plafond-mur."},
+{label:"Médaillon central",desc:"Ornement plus élaboré qu'une rosace, reliefs concentriques."},
+{label:"Plénum",desc:"Espace technique entre plafond d'origine et faux-plafond."},
+{label:"Caisson",desc:"Case formée par des poutres ou moulures, créant un effet de profondeur."},
+]},
+{label:"Points lumineux",children:[
+{label:"Spot encastré",desc:"Luminaire dans le plafond, affleurant la surface. Embase circulaire ou carrée."},
+{label:"Luminaire opalin semi-sphérique",desc:"Globe en verre ou plastique opalin en demi-sphère."},
+{label:"Luminaire en fer forgé",desc:"Ferronnerie travaillée. Différent du fer simple (non travaillé)."},
+{label:"Bande lumineuse LED",desc:"Ruban LED en saillie ou dans une gorge."},
+{label:"Réglette fluorescente",desc:"Luminaire rectangulaire en saillie. Courant dans les espaces utilitaires."},
+{label:"Câbles en attente (sucre)",desc:"Fils non raccordés à un luminaire. À mentionner systématiquement."},
+{label:"Embase circulaire / carrée",desc:"Plaque de fixation du luminaire au plafond."},
+{label:"Rosace d'embase",desc:"Ornement en plâtre autour du point d'attache d'un luminaire suspendu."},
+{label:"LED / dichroïque / halogène",desc:"Préciser le type d'ampoule. LED = basse conso. Dichroïque = GU10."},
+{label:"Points lumineux dépareillés",desc:"Luminaires de type ou finition différents dans la même pièce."},
+]},
+{label:"Défauts",children:[
+{label:"Microfissuration",desc:"Fissures capillaires, d'ordre structurel. Non imputables au locataire."},
+{label:"Fissure en angle",desc:"Part d'un angle mur/plafond. Signe de mouvement du bâtiment. Non imputable."},
+{label:"Auréole / trace humide",desc:"Tache jaunâtre à ocre, signe d'infiltration d'eau."},
+{label:"Moisissures",desc:"Champignons noirs ou gris. Signe de condensation ou infiltration."},
+{label:"Boursouflure / décollement",desc:"Zone où la peinture ou l'enduit se soulève et se décolle."},
+{label:"Faïençage",desc:"La peinture se soulève en multiples craquelures en étoile."},
+{label:"Traces de ragréage",desc:"Réparation antérieure perceptible sous la peinture."},
+{label:"Taches jaunâtres / brunâtres",desc:"Résultent de nicotine, humidité ancienne ou projections."},
+{label:"Grisonnement dans les angles",desc:"Accumulation de poussière et condensation. Inhérent à l'usage."},
+]},
+]},
+{label:"Murs et cloisons",sub:"Revêtement · Couleur · Défauts · Humidité",children:[
+{label:"Revêtements",children:[
+{label:"Peinture sur enduit",desc:"Le plus courant. Enduit plâtré recouvert d'une ou plusieurs couches."},
+{label:"Papier peint intissé",desc:"Se retire en lé entier. Vérifier joints, décollement, bulles."},
+{label:"Papier peint vinyle",desc:"Plastifié, lavable. Vérifier les joints et décollements."},
+{label:"Toile de verre peinte",desc:"Toile collée puis peinte. Texture côtelée. Bonne résistance."},
+{label:"Lambris bois",desc:"Panneaux cloués ou collés. Vérifier vernis, éclats, jointures."},
+{label:"Crépi / enduit projeté",desc:"Surface texturée par projection. Très difficile à réparer sans retouche."},
+{label:"Carrelage mural",desc:"Rare en chambre mais possible."},
+{label:"Tadelakt",desc:"Enduit marocain à la chaux, imperméable et lisse."},
+{label:"Brique / pierre apparente",desc:"Matériaux bruts ou traités. Vérifier joints, propreté, éclats."},
+]},
+{label:"Couleurs",children:[
+{label:"Blanc"},
+{label:"Blanc cassé / crème",desc:"Ton légèrement chaud. Fréquent dans les logements anciens."},
+{label:"Gris clair / moyen / foncé"},
+{label:"Beige / taupe"},
+{label:"Bleu (ciel, ardoise, marine, canard)"},
+{label:"Vert (sauge, olive, forêt, menthe)"},
+{label:"Rose / terracotta / ocre"},
+{label:"Couleur foncée / mur d'accent",desc:"À mentionner : couche d'impression nécessaire à la sortie."},
+{label:"Nuances de teinte visibles",desc:"Retouches localisées ou exposition lumineuse inégale."},
+]},
+{label:"État de la peinture",children:[
+{label:"Neuve — très belle présentation"},
+{label:"Récente — belle présentation"},
+{label:"Terne — légèrement grisonnante"},
+{label:"Défraîchie — marquée par l'usage"},
+{label:"Peu couvrante"},
+{label:"Appliquée sur irrégularités"},
+{label:"Nuances de teinte visibles"},
+{label:"Usagée"},
+{label:"Amortie — vétusté 6 ans",desc:"Non imputable au locataire à la sortie."},
+]},
+{label:"Défauts",children:[
+{label:"Trous de cheville rebouchés",desc:"Bouchés (plâtre, mastic). À mentionner."},
+{label:"Trous de cheville non rebouchés",desc:"Apparents. À comptabiliser."},
+{label:"Impacts sous peinture",desc:"Enfoncements visibles dus à des chocs anciens."},
+{label:"Aspérités / irrégularités de l'enduit"},
+{label:"Arête vive endommagée",desc:"Angle sortant ayant subi des chocs. Peinture éclatée, enduit manquant."},
+{label:"Boursouflure / décollement"},
+{label:"Traces d'humidité / auréoles"},
+{label:"Moisissures"},
+{label:"Salpêtre",desc:"Dépôt blanchâtre cristallin sur un mur humide."},
+{label:"Traces de ragréage visibles"},
+{label:"Tasso",desc:"Petite bosse localisée de l'enduit. Terme technique."},
+{label:"Tige métallique sortante",desc:"Non imputable. Mentionner à titre indicatif."},
+{label:"Traces de crayon / feutre"},
+{label:"Renfoncement au niveau de la béquille",desc:"Usure de la peinture à l'emplacement de la poignée de porte."},
+{label:"Remontée capillaire",desc:"Humidité ascensionnelle provenant du sol par capillarité."},
+{label:"Allège",desc:"Partie de mur sous le rebord d'une fenêtre."},
+]},
+]},
+{label:"Plinthes",sub:"Matériau · Hauteur · Joints · Dégradations",children:[
+{label:"Types et matériaux",children:[
+{label:"Bois peint",desc:"Le plus répandu. Se teinte et peint facilement."},
+{label:"MDF peint",desc:"Médium densifié peint. Surface lisse. Sensible à l'humidité."},
+{label:"PVC",desc:"Plastique blanc ou ton bois. Très résistant, imperméable."},
+{label:"Carrelage (plinthe)",desc:"Rangée de carreaux courbés faisant office de plinthe."},
+{label:"Béton"},
+{label:"Contre-plinthe",desc:"Petite moulure décorative au-dessus de la plinthe principale."},
+]},
+{label:"Dimensions et couleur",children:[
+{label:"Haute plinthe (~12 cm et plus)",desc:"Imposante, souvent dans les logements anciens de standing."},
+{label:"Plinthe moyenne (~7–8 cm)",desc:"Format standard actuel."},
+{label:"Basse plinthe (~4–5 cm)",desc:"Format discret, contemporain."},
+{label:"Blanc / blanc cassé"},
+{label:"Teinte bois naturel / vernis"},
+{label:"Couleur assortie au mur"},
+]},
+{label:"Dégradations",children:[
+{label:"N'appelle pas de remarque"},
+{label:"Légères griffures d'usage"},
+{label:"Éraillements millimétriques aux arêtes"},
+{label:"Éraillements prononcés"},
+{label:"Éclats"},
+{label:"Décollement"},
+{label:"Déboitement",desc:"Plinthe sortie de son emplacement, souvent en angle."},
+{label:"Percutée par la porte",desc:"En l'absence d'arrêt de porte."},
+{label:"Coulées de peinture"},
+{label:"Vis de fixation apparentes"},
+]},
+{label:"Joints et fixation",children:[
+{label:"Joint propre"},
+{label:"Joint noirci"},
+{label:"Joint évidé"},
+{label:"Joint fissuré"},
+{label:"Joint silicone blanc / gris"},
+{label:"Joint ciment"},
+{label:"Absence de joint"},
+{label:"Fixation collée"},
+{label:"Fixation vissée — vis cachées"},
+{label:"Fixation vissée — vis apparentes"},
+{label:"Fixation clouée"},
+{label:"Arrêt de porte présent et fonctionnel"},
+{label:"Arrêt de porte absent",desc:"La porte heurte-t-elle la plinthe ?"},
+{label:"Butoir avec amortisseur caoutchouc"},
+]},
+]},
+{label:"Sols",sub:"Parquet · Carrelage · Moquette · Finition · Joints",children:[
+{label:"Matériaux",children:[
+{label:"Parquet massif",desc:"Chêne, noyer, hêtre, pin, merbau. Peut être poncé et revitrifié plusieurs fois."},
+{label:"Parquet semi-massif",desc:"Couche noble collée sur support contrecollé. Plus stable que le massif."},
+{label:"Parquet laminé / Quickstep",desc:"Couche d'usure en mélaminé sur HDF. Non ponçable."},
+{label:"Parquet à bâtons rompus",desc:"Pose en chevrons cassés (45°). Motif décoratif traditionnel."},
+{label:"Parquet mosaïque",desc:"Petites lamelles formant des motifs géométriques."},
+{label:"Parquet pont de bateau",desc:"Lames larges posées en lignes parallèles."},
+{label:"Plancher bois type sapin",desc:"Courant dans les maisons anciennes."},
+{label:"Carrelage grès-cérame",desc:"Très résistant. Imitation pierre, béton ou bois."},
+{label:"Carrelage faïence",desc:"Céramique émaillée. Plus fragile que le grès-cérame."},
+{label:"Carrelage tomette",desc:"Hexagonal en terre cuite. Style provençal."},
+{label:"Dalle de pierre naturelle",desc:"Marbre, ardoise, travertin, granit. Sol haut de gamme."},
+{label:"Stratifié / lino / vinyle",desc:"Souple ou laminé. Résistant, imperméable."},
+{label:"Moquette",desc:"Revêtement textile fixé. Sensible aux taches et à l'humidité."},
+{label:"Béton ciré",desc:"Surface continue sans joint. Style contemporain."},
+{label:"Résine époxy",desc:"Sol coulé en continu. Lisse, brillant."},
+{label:"Klinkers",desc:"Dalles terre cuite pressée très résistantes. Terrasse."},
+]},
+{label:"Finitions parquet",children:[
+{label:"Vitrifié mat",desc:"Le plus répandu. Protège le bois sans le plastifier."},
+{label:"Vitrifié brillant",desc:"Vernis polyuréthane brillant."},
+{label:"Huilé",desc:"Huile pénétrante. Aspect naturel. Entretien régulier nécessaire."},
+{label:"Ciré",desc:"Cire d'entretien. Aspect satiné."},
+{label:"Non traité / brut"},
+{label:"Poncé et revitrifié",desc:"Remise à neuf. À mentionner explicitement dans le rapport."},
+]},
+{label:"État et usure",children:[
+{label:"Neuf — très bel état locatif"},
+{label:"Légère usure aire de foulée",desc:"Axe de passage principal. Usage attendu."},
+{label:"Usure prononcée"},
+{label:"Vitrification amortie"},
+{label:"Manque d'entretien"},
+{label:"Disjoint régulier entre lattes",desc:"Signe de mouvement du bois. Souvent saisonnier."},
+]},
+{label:"Dégradations",children:[
+{label:"Fines griffures d'usage"},
+{label:"Griffures prononcées"},
+{label:"Renfoncement",desc:"Enfoncement localisé dû à un choc ponctuel. Préciser le diamètre."},
+{label:"Brûlure / brûlure de cigarette"},
+{label:"Tache auréolaire",desc:"Laissée par un liquide (vase, pot de plante, verre)."},
+{label:"Tache de peinture"},
+{label:"Latte disjointe"},
+{label:"Latte manquante"},
+{label:"Éclat de carreau"},
+{label:"Carreau fissuré"},
+{label:"Soulèvement des lames"},
+{label:"Tache sur moquette"},
+{label:"Pelage / usure de moquette"},
+]},
+{label:"Joints (carrelage)",children:[
+{label:"Joint blanc / gris / beige / noir"},
+{label:"Joints propres"},
+{label:"Joints blanchâtres"},
+{label:"Joints noircis"},
+{label:"Joints évidés"},
+{label:"Joints fissurés"},
+{label:"Joints manquants"},
+{label:"Joint de resserrement en ciment"},
+{label:"Joint époxy",desc:"Plus résistant à l'humidité et aux taches que le joint ciment."},
+{label:"Joint silicone",desc:"Souple, utilisé aux angles et jonctions."},
+]},
+]},
+{label:"Menuiseries extérieures",sub:"Châssis · Vitrage · Tablettes · Volets · Porte d'entrée",children:[
+{label:"Châssis de fenêtre",children:[
+{label:"Matériaux",children:[
+{label:"PVC blanc"},{label:"PVC teinte bois"},{label:"Aluminium blanc / gris"},
+{label:"Bois laqué blanc"},{label:"Bois vernis"},{label:"Acier"},{label:"Mixte bois-aluminium"},
+]},
+{label:"Types d'ouverture",children:[
+{label:"Fixe (condamné)"},{label:"Simple ouvrant"},
+{label:"Oscillo-battant",desc:"Bascule vers l'intérieur (aération) ou s'ouvre en battant."},
+{label:"Coulissant"},{label:"Basculant"},
+{label:"Porte-fenêtre",desc:"Ouvrant depuis le sol, permettant le passage."},
+{label:"Vélux",desc:"Fenêtre inclinée dans le plan de la toiture."},
+{label:"Baie vitrée"},{label:"Œil de bœuf (rond)"},{label:"Fenêtre bow-window"},
+]},
+{label:"Vitrages",children:[
+{label:"Simple vitrage",desc:"Un seul verre. Mauvais isolant thermique."},
+{label:"Double vitrage propre"},
+{label:"Chambre de décompression propre",desc:"Espace entre les deux verres. Propre = hermétique."},
+{label:"Chambre de décompression empoussiérée",desc:"Signe de perte d'étanchéité."},
+{label:"Vitrage intact / fêlé / fissuré"},
+{label:"Parcloses",desc:"Petite moulure maintenant le vitrage dans son cadre."},
+{label:"Verre sablé / dépoli / gouttelettes"},
+{label:"Grisonnements urbains",desc:"Légère salissure grise sur les dormants. Inhérent à l'usage urbain."},
+]},
+{label:"Béquille et quincaillerie",children:[
+{label:"Béquille métal chromé / blanc"},
+{label:"Béquille plastique blanc"},
+{label:"Prise en main laiton doré"},
+{label:"Ballotte légèrement",desc:"Légère mobilité. Usage normal."},
+{label:"Ballotte fortement",desc:"Jeu excessif. Fixation nécessaire."},
+{label:"Frein hydraulique (vélux)"},
+{label:"Détecteur d'ouverture"},
+{label:"Traces de peinture sur châssis"},
+{label:"Résidus collants"},
+]},
+{label:"Fonctionnement",children:[
+{label:"Se manipule correctement"},
+{label:"Légère insistance"},
+{label:"Nécessite un réglage"},
+{label:"Ne fonctionne pas"},
+]},
+]},
+{label:"Tablettes de fenêtre",children:[
+{label:"Pierre bleue",desc:"Pierre calcaire belge gris-bleu. La plus noble."},
+{label:"Pierre naturelle beige / grise"},
+{label:"Pierre bleue posée en 2 parties"},
+{label:"Composite façon marbre"},
+{label:"Aluminium"},{label:"Bois peint / MDF peint"},{label:"PVC blanc"},
+{label:"N'appelle pas de remarque"},{label:"Ternie"},
+{label:"Épaufrure",desc:"Éclat ou entaille sur une arête de la tablette."},
+{label:"Impact millimétrique"},{label:"Traces de frottement"},
+{label:"Traces verdâtres"},{label:"Caches latéraux présents / absents"},
+]},
+{label:"Volets et stores",children:[
+{label:"Volets battants bois / PVC"},
+{label:"Volets roulants électriques"},{label:"Volets roulants manuels"},
+{label:"Store banne extérieur"},{label:"Stores vénitiens extérieurs"},
+{label:"Persienne",desc:"Volet à lames fixes ou mobiles. Style méditerranéen."},
+{label:"Moustiquaire",desc:"Cadre métal. Amovible ou fixe."},
+{label:"Manuel / électrique / domotique"},
+{label:"Fonctionnel"},{label:"Légère insistance"},{label:"Non fonctionnel"},
+{label:"Store type bateau — chaînette perlée"},
+]},
+{label:"Porte d'entrée",children:[
+{label:"Types",children:[
+{label:"Porte blindée"},{label:"Porte pleine"},{label:"Porte vitrée"},
+{label:"Porte avec imposte vitrée fixe"},{label:"Double porte"},
+{label:"Porte de service"},{label:"Porte coupe-feu"},
+]},
+{label:"Serrure et accès",children:[
+{label:"Serrure 3 / 5 points"},{label:"Clé à gorge"},{label:"Verrou présent"},
+{label:"Cylindre usagé"},{label:"Clé absente / difficile à tourner"},
+]},
+{label:"Béquille et poignée",children:[
+{label:"Béquille tubulaire / rectangulaire"},{label:"Poignée à pompe"},
+{label:"Ballotte légèrement / fortement"},{label:"Rosace absente"},
+]},
+{label:"Joints et étanchéité",children:[
+{label:"Joint périphérique bon état / usagé"},
+{label:"Mauclair",desc:"Joint de mastic entre porte et cadre."},
+{label:"Entre-porte en métal / aluminium"},{label:"Balai de porte"},
+{label:"Seuil pierre bleue / laiton / aluminium"},
+]},
+{label:"État et fonctionnement",children:[
+{label:"Se manipule correctement"},{label:"Légère insistance"},
+{label:"Frotte dans le chambranle"},{label:"Éraflure huisserie"},
+]},
+]},
+]},
+{label:"Menuiseries intérieures",sub:"Portes · Placards · Quincaillerie",children:[
+{label:"Portes intérieures",children:[
+{label:"Types",children:[
+{label:"Porte isoplane",desc:"Surface entièrement lisse, sans relief. La plus courante."},
+{label:"Porte à peindre"},{label:"Porte à 2 panneaux"},{label:"Porte à 4 panneaux"},
+{label:"Porte vitrée"},{label:"Porte coulissante (rail)"},
+{label:"Porte à galandage",desc:"Disparaît dans le mur."},
+{label:"Double porte"},{label:"Porte condamnée"},
+]},
+{label:"Composants",children:[
+{label:"Paumelle",desc:"Charnière de porte. Deux plaques articulées par un axe."},
+{label:"Cache-paumelle",desc:"Cache décoratif couvrant la paumelle visible."},
+{label:"Huisserie",desc:"Ensemble chambranle + ébrasements encadrant la porte."},
+{label:"Chambranle",desc:"Moulure encadrant la porte côté face visible."},
+{label:"Ébrasement",desc:"Épaisseur du mur dans l'encadrement de la porte."},
+{label:"Chant de la porte",desc:"Tranche latérale visible quand la porte est ouverte."},
+{label:"Plaquette de propreté",desc:"Entourage autour de la serrure ou de la béquille."},
+{label:"Béquille tubulaire / à pompe"},
+{label:"Rosace",desc:"Base circulaire sur laquelle est montée la béquille."},
+{label:"Pène",desc:"Partie de la serrure qui rentre dans la gâche."},
+{label:"Gâche",desc:"Pièce en creux dans l'huisserie recevant le pène."},
+{label:"Loquet",desc:"Mécanisme simple sans serrure. Courant côté WC ou SDB."},
+{label:"Balai de porte"},{label:"Seuil / latte de finition"},
+{label:"Fine latte inox entre-porte"},
+]},
+{label:"Dégradations",children:[
+{label:"N'appelle pas de remarque"},
+{label:"Légères irrégularités sous peinture"},
+{label:"Impacts millimétriques"},
+{label:"Éclats (~1 cm / >1 cm)"},
+{label:"Poinçons (enfoncements)"},
+{label:"Déchirure / arrachage",desc:"Ex : déchirure triangulaire réparée à l'adhésif."},
+{label:"Taches de peinture"},
+{label:"Arêtes inférieures jaunies"},
+{label:"Nuance de peinture",desc:"Retouche visible d'une couleur légèrement différente."},
+]},
+{label:"Fonctionnement",children:[
+{label:"Se manipule correctement"},
+{label:"Légère insistance"},
+{label:"Frotte dans le chambranle"},
+{label:"Ne ferme pas correctement"},
+{label:"Grince"},
+{label:"Clé présente / absente"},
+]},
+]},
+{label:"Placards et dressing",children:[
+{label:"Types de portes",children:[
+{label:"Battantes"},{label:"Coulissantes"},{label:"À galandage"},
+{label:"Accordéon / pliantes"},{label:"Miroir"},{label:"Sans porte (ouvert)"},
+]},
+{label:"Composants",children:[
+{label:"Tablettes / étagères intérieures"},
+{label:"Barre de penderie",desc:"Vérifier la fixation."},
+{label:"Barre de penderie légèrement fléchie"},
+{label:"Crémaillères métalliques blanches"},
+{label:"Tringles à vêtements"},
+{label:"2 patères à 2 crochets"},
+{label:"Fond du caisson"},
+]},
+{label:"Quincaillerie",children:[
+{label:"Charnières fonctionnelles / usagées"},
+{label:"Glissières fonctionnelles / à régler"},
+{label:"Galets de nylon présents"},
+{label:"Fermeture correcte / légère insistance"},
+]},
+{label:"États intérieur",children:[
+{label:"Intérieur propre"},
+{label:"Légèrement empoussiéré"},
+{label:"Taches sur le fond"},
+{label:"Trous de clous sur les parois"},
+{label:"Planche fléchie"},
+{label:"Fond fissuré"},
+]},
+]},
+]},
+{label:"Électricité",sub:"Tableau · Prises · Interrupteurs · Luminaires",children:[
+{label:"Tableau électrique",children:[
+{label:"Marque Hager"},
+{label:"Marque Legrand"},
+{label:"Marque Schneider Electric"},
+{label:"Portillon métal laqué blanc"},
+{label:"Portillon plastique / fumé"},
+{label:"Sans portillon"},
+{label:"Schéma unifilaire présent",desc:"Doit obligatoirement se trouver dans le coffret."},
+{label:"Schéma unifilaire absent"},
+{label:"Disjoncteurs"},
+{label:"Propre / légèrement empoussiéré"},
+{label:"Attestation de conformité absente"},
+]},
+{label:"Prises de courant",children:[
+{label:"Marque Niko",desc:"Marque de référence belge."},
+{label:"Marque Legrand / Schneider"},
+{label:"Blanc / blanc cassé / crème"},
+{label:"Prise 2P+T standard"},
+{label:"Prise étanche IPPS",desc:"Pour les pièces humides."},
+{label:"Prise TV / radio-télédistribution"},
+{label:"Prise téléphone"},
+{label:"Prise data (internet)"},
+{label:"Double prise"},
+{label:"Double prise surajoutée"},
+{label:"Goulotte de câbles"},
+{label:"Réservation sans cache"},
+{label:"Plaquettes propres / grisâtres / jaunies / fissurées"},
+{label:"Toutes fonctionnelles"},
+]},
+{label:"Interrupteurs",children:[
+{label:"Interrupteur à bascule"},
+{label:"Va-et-vient"},
+{label:"Interrupteur domotique"},
+{label:"Détecteur de présence"},
+{label:"Minuterie"},
+{label:"Plaquettes propres / grisâtres / jaunies"},
+{label:"Nombreux coups — peinture endommagée"},
+]},
+{label:"Luminaires et spots",children:[
+{label:"Spot encastré — embase circulaire"},
+{label:"Spot orientable — bras 60 cm"},
+{label:"Luminaire opalin semi-sphérique"},
+{label:"Luminaire en fer forgé (travaillé)"},
+{label:"Luminaire sur base rectangulaire"},
+{label:"2 bandeaux lumineux plastique chromé"},
+{label:"Réflecteur verre opalin"},
+{label:"Bande lumineuse LED"},
+{label:"Câbles en attente (sucre)"},
+{label:"Ampoule LED fonctionnelle / absente"},
+{label:"Ampoule dichroïque / halogène"},
+{label:"Points lumineux dépareillés"},
+]},
+]},
+{label:"Chauffage et ventilation",sub:"Chaudière · Radiateurs · VMC · Détecteurs",children:[
+{label:"Chaudière",children:[
+{label:"Type",children:[
+{label:"Gaz à condensation"},{label:"Gaz classique"},
+{label:"Mazout"},{label:"Bois / pellets"},
+{label:"Pompe à chaleur air/eau"},{label:"Pompe à chaleur air/air"},
+]},
+{label:"Marques",children:[
+{label:"Vaillant"},{label:"Buderus"},{label:"Viessmann"},
+{label:"De Dietrich"},{label:"Junkers"},{label:"Remeha"},
+]},
+{label:"États",children:[
+{label:"Carénage propre — belle présentation"},
+{label:"Légèrement empoussiéré"},{label:"Encrassé"},{label:"Endommagé"},
+{label:"Attestation d'entretien fournie",desc:"Entretien annuel obligatoire."},
+{label:"Attestation d'entretien absente"},
+{label:"Réputée fonctionnelle"},{label:"Bruit anormal signalé"},
+]},
+{label:"Équipements liés",children:[
+{label:"Adoucisseur d'eau"},{label:"Filtre d'eau de pluie"},
+{label:"Ramonage de cheminée"},{label:"Foyer à cassette — tiroir à cendres"},
+]},
+]},
+{label:"Radiateurs",children:[
+{label:"Types",children:[
+{label:"Radiateur à tôle emboutie (Radson, Henrad)"},
+{label:"Radiateur en fonte (d'époque)"},
+{label:"Radiateur à panneaux lisses"},
+{label:"Radiateur électrique à inertie"},
+{label:"Convecteur"},
+{label:"Plancher chauffant",desc:"Tubes d'eau chaude ou résistances électriques dans la dalle."},
+]},
+{label:"Composants",children:[
+{label:"Joues latérales lisses"},
+{label:"Grille en tréfilé métal (partie supérieure)"},
+{label:"Ailettes intérieures",desc:"Lames internes augmentant la surface de chauffe."},
+{label:"Carénage tôle émaillée blanche"},
+{label:"Vanne thermostatique",desc:"Robinet de réglage en tête du radiateur."},
+{label:"Calorimètre Techem",desc:"Compteur de chaleur (chauffage collectif). Relever n° et index."},
+]},
+{label:"Couleur et état",children:[
+{label:"Blanc émaillé / blanc cassé / gris"},
+{label:"N'appelle pas de remarque — belle présentation"},
+{label:"Légères traces de frottement"},
+{label:"Peinture ternie"},
+{label:"Peinture défraîchie / écaillée"},
+{label:"Présence de rouille"},
+{label:"Ailettes propres / empoussiérées / encrassées"},
+]},
+{label:"Vanne thermostatique",children:[
+{label:"Présente — fonctionnelle"},
+{label:"Tourne correctement"},{label:"Tourne avec insistance"},
+{label:"Grippée"},{label:"Manquante"},
+{label:"Plastique blanc / chromé"},
+{label:"Maculée de peinture"},{label:"Défraîchie"},
+]},
+{label:"Fonctionnement",children:[
+{label:"Fonctionnel — non testé (hors saison)"},
+{label:"Fonctionnel — testé"},
+{label:"Non fonctionnel"},
+{label:"Réputé fonctionnel"},
+]},
+]},
+{label:"VMC",children:[
+{label:"VMC simple flux"},{label:"VMC double flux"},
+{label:"VMC hygro (hygroréglable)"},
+{label:"Ventilation naturelle"},
+{label:"Ouïe couplée à l'éclairage"},
+{label:"Grilles propres"},
+{label:"Grilles légèrement empoussiérées"},
+{label:"Grilles fortement empoussiérées / endommagées"},
+{label:"Fonctionnel — aspiration vérifiée"},
+{label:"Non fonctionnel"},
+]},
+{label:"Détecteurs de fumée",children:[
+{label:"Obligation légale"},
+{label:"Présent(s)"},
+{label:"Absent(s) — non-conformité légale"},
+{label:"Testé — fonctionnel"},
+{label:"Non testé (trop haut)"},
+{label:"Réputé fonctionnel"},
+{label:"Marque Ei Electronics / Kidde / Aico"},
+{label:"Emplacement hall / couloir / chambre"},
+{label:"Pile à changer",desc:"Bip intermittent signalant la pile faible."},
+]},
+]},
+{label:"Sanitaires",sub:"WC · Lavabo · Baignoire · Douche · Robinetterie · Carrelage",children:[
+{label:"WC",children:[
+{label:"Types",children:[
+{label:"WC à poser (au sol)"},{label:"WC suspendu (bâti-support)"},
+{label:"WC japonais (lavant)"},{label:"WC à broyeur"},
+{label:"WC PMR"},{label:"WC séparé de la SDB"},
+]},
+{label:"Cuvette",children:[
+{label:"Porcelaine sanitaire blanc"},
+{label:"Fond du vase limpide"},
+{label:"Fond du vase terni / entartré"},
+{label:"Patine de la cuvette",desc:"Altération naturelle par l'usage."},
+{label:"Fixation au sol correcte"},
+{label:"Cuvette qui ballotte",desc:"Fixation desserrée."},
+{label:"Ancrage de lunette / frein de descente"},
+{label:"Vase de toilette",desc:"Terme formel désignant la cuvette."},
+{label:"Dévidoir / porte-papier hygiénique"},
+]},
+{label:"Abattant",children:[
+{label:"Épais plastique moulé blanc"},
+{label:"Soft-close fonctionnel",desc:"Descente douce et silencieuse."},
+{label:"Amortisseurs intacts"},
+{label:"Amortisseurs endommagés"},
+{label:"Ralentisseur",desc:"Terme technique pour le mécanisme d'amortissement."},
+{label:"Abattant fissuré"},
+{label:"Abattant jauni"},
+{label:"Abattant manquant"},
+]},
+{label:"Chasse d'eau",children:[
+{label:"Réservoir dorsal"},
+{label:"Réservoir encastré (bâti-support)"},
+{label:"Double bouton — économie d'eau"},
+{label:"Bouton de tirage chromé"},
+{label:"Remplissage correct / lent"},
+{label:"Écoulement correct / lent"},
+{label:"Fuite de chasse (bruit d'eau)"},
+{label:"Clapet à remplacer"},
+]},
+{label:"Vanne d'arrêt WC",children:[
+{label:"Tourne correctement"},
+{label:"Tourne avec insistance"},
+{label:"Grippée — plombier nécessaire (~14 €)"},
+{label:"Absente"},
+{label:"Tourner tous les 6–12 mois"},
+]},
+]},
+{label:"Lavabo et meuble vasque",children:[
+{label:"Types",children:[
+{label:"Sur colonne"},{label:"Suspendu / mural"},
+{label:"Encastré dans meuble (vasque)"},
+{label:"Vasque à poser"},{label:"Lave-mains"},
+{label:"Double vasque"},{label:"Plan vasque intégré (solid surface)"},
+]},
+{label:"Composants",children:[
+{label:"Bonde crépine poussoir"},
+{label:"Bonde mécanique"},
+{label:"Bouton de tirage chromé"},
+{label:"Trop-plein",desc:"Orifice de sécurité en partie haute du lavabo."},
+{label:"Siphon",desc:"Assure l'étanchéité aux gaz et le raccordement à l'évacuation."},
+{label:"Cache-siphon"},
+{label:"Vanne d'arrêt",desc:"Tourner tous les 6–12 mois pour éviter le grippage."},
+{label:"Plan de toilette"},
+]},
+{label:"États",children:[
+{label:"N'appelle pas de remarque"},
+{label:"Calcaire léger / important"},
+{label:"Éclat d'émail / de porcelaine"},
+{label:"Fissure"},
+{label:"Jaunissement"},
+{label:"Micro-griffures"},
+{label:"Bonde ne retient pas l'eau"},
+{label:"Siphon avec légère fuite"},
+{label:"Fixation instable"},
+]},
+{label:"Meuble sous-lavabo",children:[
+{label:"Façade laquée blanc / chêne"},
+{label:"Charnières fonctionnelles"},
+{label:"Intérieur propre / empoussiéré"},
+{label:"Gonflement du fond (fuite passée)"},
+{label:"Protection aluminium intérieure"},
+{label:"Poignées métal chromé"},
+]},
+]},
+{label:"Baignoire",children:[
+{label:"Types",children:[
+{label:"Baignoire encastrée"},{label:"Baignoire asymétrique"},
+{label:"Baignoire îlot"},{label:"Baignoire sur pieds"},
+{label:"Baignoire balnéo / spa"},
+]},
+{label:"Matériaux",children:[
+{label:"Acrylique (sonne creux)"},
+{label:"Acier émaillé (sonne plein)"},
+{label:"Fonte émaillée"},
+{label:"Quaryl / acrylique renforcée"},
+{label:"Résine de synthèse (Corian)"},
+]},
+{label:"Composants",children:[
+{label:"Tablier / jupe de baignoire"},
+{label:"Trapillon (trappe de visite)"},
+{label:"Bonde"},
+{label:"Trop-plein (bouche de débordement)"},
+{label:"Rebord de baignoire"},
+{label:"Joint périphérique baignoire / mur"},
+{label:"Inverseur bain-douche"},
+{label:"Douchette de baignoire"},
+]},
+{label:"États",children:[
+{label:"N'appelle pas de remarque"},
+{label:"Légères micro-griffures"},
+{label:"Griffures prononcées"},
+{label:"Éclat d'émail (forfait 40 €)"},
+{label:"Tache résistante"},
+{label:"Jaunissement"},
+{label:"Joint périphérique évidé / décollé"},
+{label:"Joint noirci par les moisissures"},
+{label:"Bonde non fonctionnelle"},
+{label:"Trop-plein obstrué"},
+]},
+]},
+{label:"Douche",children:[
+{label:"Types",children:[
+{label:"Douche à l'italienne (plain-pied)"},
+{label:"Receveur acrylique"},
+{label:"Receveur résine / Quaryl"},
+{label:"Cabine préfabriquée"},
+{label:"Sol de douche carrelé"},
+]},
+{label:"Receveur — composants",children:[
+{label:"Bonde de douche"},
+{label:"Siphon de sol"},
+{label:"Crépine"},
+{label:"Seuil de receveur"},
+{label:"Joint périphérique receveur / mur"},
+{label:"Grille de drainage linéaire (inox)"},
+{label:"Trappe de visite siphon"},
+]},
+{label:"Parois de douche",children:[
+{label:"Paroi fixe en verre (walk-in)"},
+{label:"Porte battante"},
+{label:"Porte coulissante"},
+{label:"Paroi accordéon (synthèse)"},
+{label:"Rideau de douche"},
+{label:"Verre clair / dépoli / gouttelettes / sablé"},
+{label:"Profilé aluminium éloxé / chromé / blanc"},
+{label:"Inox brossé"},
+]},
+{label:"Composants paroi",children:[
+{label:"Joint inférieur bon état"},
+{label:"Joint inférieur usagé / compressé"},
+{label:"Joint inférieur déchiré"},
+{label:"Galet / roulette"},
+{label:"Poignée de porte de douche"},
+{label:"Baguette d'étanchéité"},
+{label:"Imposte fixe vitrée"},
+]},
+{label:"États",children:[
+{label:"N'appelle pas de remarque"},
+{label:"Légères traces de calcaire"},
+{label:"Calcaire important sur la paroi"},
+{label:"Micro-griffures receveur"},
+{label:"Receveur griffé (forfait 65 €)"},
+{label:"Joint périphérique évidé"},
+{label:"Joints noircis de la douche"},
+{label:"Paroi instable / fixation défaillante"},
+{label:"Bonde bouchée / écoulement lent"},
+]},
+]},
+{label:"Robinetterie",children:[
+{label:"Types",children:[
+{label:"Mitigeur"},
+{label:"Mélangeur (2 robinets séparés)"},
+{label:"Thermostatique",desc:"Maintient automatiquement la température réglée."},
+{label:"Mitigeur col de cygne"},
+{label:"Robinetterie murale encastrée"},
+]},
+{label:"Finitions et marques",children:[
+{label:"Métal chromé"},{label:"Métal brossé / satiné"},
+{label:"Or / champagne"},{label:"Noir mat"},
+{label:"Plastique chromé"},
+{label:"Grohe"},{label:"Hansgrohe"},
+{label:"Ideal Standard"},{label:"Porcher / Jacob Delafon"},
+]},
+{label:"Composants",children:[
+{label:"Mousseur",desc:"Aérateur en bout de bec. Peut être entartré."},
+{label:"Flexible annelé chromé"},
+{label:"Flexible simple (plastique)"},
+{label:"Flexible sous gaine annelée"},
+{label:"Pommeau de douche"},
+{label:"Barre de douche télescopique"},
+{label:"Inverseur bain-douche"},
+{label:"Cartouche céramique"},
+]},
+{label:"États",children:[
+{label:"N'appelle pas de remarque"},
+{label:"Légères traces d'eau séchée"},
+{label:"Calcaire léger / important"},
+{label:"Mousseur entartré"},
+{label:"Terne / finition ternie"},
+{label:"Fuite au niveau du bec"},
+{label:"Fuite au niveau du joint"},
+{label:"Robinet dur / rigide"},
+{label:"Flexible jauni / détérioré"},
+{label:"Pommeau entartré"},
+]},
+]},
+{label:"Carrelage mural SDB",children:[
+{label:"Faïence blanche brillante / mate"},
+{label:"Faïence de couleur"},
+{label:"Grès-cérame"},
+{label:"Mosaïque"},
+{label:"Lambris de carrelage partiel"},
+{label:"Carrelage métro (7×20 cm)"},
+{label:"Grand format (60×60 cm et plus)"},
+{label:"Liserée / listel / frise"},
+{label:"Joints propres / noircis / évidés"},
+{label:"Couleur des joints (blanc / gris / beige)"},
+{label:"Carreau fissuré / décollé / manquant"},
+{label:"Dépôt calcaire léger / important"},
+]},
+{label:"Miroir et meuble pharmacie",children:[
+{label:"Miroir simple / biseauté"},
+{label:"Miroir avec éclairage LED intégré"},
+{label:"Miroir rétroéclairé"},
+{label:"Meuble 1 caisson 2 battants"},
+{label:"2 étagères intermédiaires"},
+{label:"Prise intégrée (rasoir)"},
+{label:"Propre"},{label:"Légèrement sale"},
+{label:"Éraillé"},
+{label:"Oxydé (taches noires en périphérie)",desc:"Humidité attaquant le tain (couche métallique)."},
+{label:"Brisé"},{label:"Fixation insuffisante"},
+]},
+{label:"Accessoires SDB",children:[
+{label:"Porte-serviettes",desc:"Barre horizontale en métal chromé. Vérifier fixation."},
+{label:"Porte-savon (mural / encastré)"},
+{label:"Dévidoir de papier WC"},
+{label:"Crochets / patères pour peignoirs"},
+{label:"Tablette murale (verre / métal)"},
+{label:"Niche / alcôve murale carrelée"},
+{label:"Sèche-serviettes électrique"},
+{label:"Sèche-serviettes eau chaude"},
+{label:"Fonctionnel / peinture ternie / rouille"},
+{label:"Prise étanche IPPS"},
+{label:"Spot encastré étanche (IP44 / IP65)"},
+]},
+{label:"Vannes d'arrêt générales",children:[
+{label:"Vanne d'arrêt générale"},
+{label:"Vanne d'arrêt sous lavabo"},
+{label:"Vanne d'arrêt sous WC"},
+{label:"Vanne sous baignoire (via trappe)"},
+{label:"Tourne correctement"},
+{label:"Tourne avec insistance"},
+{label:"Grippée — plombier nécessaire (~14 €)"},
+{label:"Non testée / absente"},
+{label:"Tourner toutes les vannes tous les 6–12 mois",desc:"Recommandation systématique à transmettre au locataire."},
+{label:"Siphon propre / entartré / bouché"},
+{label:"Aucune fuite apparente constatée"},
+]},
+]},
+{label:"Cuisine équipée",sub:"Taque · Four · Hotte · Frigo · Évier · Plan · Meubles · Crédence",children:[
+{label:"Table de cuisson",children:[
+{label:"Types",children:[
+{label:"Vitrocéramique",desc:"Chauffe par résistance. Surface lisse. On dit 'foyers', pas 'feux'."},
+{label:"Induction",desc:"Chauffe par induction magnétique. Froide hors zones actives."},
+{label:"Gaz avec piezo (tac-tac-tac)"},
+{label:"Gaz allumage manuel"},
+{label:"Mixte gaz + vitrocéramique"},
+{label:"Gazinière (autoportante)"},
+]},
+{label:"Composants",children:[
+{label:"Foyer (vitro / induction)",desc:"Zone de chauffe délimitée. On dit 4 foyers."},
+{label:"Bec / brûleur (gaz)",desc:"On dit 4 becs au gaz."},
+{label:"Tête de brûleur"},
+{label:"Couronne de diffusion"},
+{label:"Chapeau de brûleur"},
+{label:"Grille de support (fonte émaillée / inox)"},
+{label:"2 supports casseroles tons noirs"},
+{label:"Booster (induction)"},
+]},
+{label:"États",children:[
+{label:"N'appelle pas de remarque"},
+{label:"Légères traces de cuisson"},
+{label:"Résidus brunâtres incrustés"},
+{label:"Griffures / égratignures"},
+{label:"Impact / éclat"},
+{label:"Brûlure / carbonisation"},
+{label:"Bec non fonctionnel (gaz)"},
+{label:"Grille de support usagée"},
+]},
+]},
+{label:"Four",children:[
+{label:"Types",children:[
+{label:"Électrique classique (sole + voûte)"},
+{label:"Chaleur tournante (turbine)"},
+{label:"Pyrolyse",desc:"Auto-nettoyage par combustion à 480°C."},
+{label:"Gaz"},{label:"Vapeur"},
+{label:"Micro-ondes encastré"},
+]},
+{label:"Composants",children:[
+{label:"Sole (résistance inférieure)"},
+{label:"Voûte / grill (résistance supérieure)"},
+{label:"Turbine / ventilateur"},
+{label:"Double vitrage de la porte"},
+{label:"Joint de porte"},
+{label:"Éclairage intérieur"},
+{label:"Claie (grille de four)"},
+{label:"Lèchefrite"},
+{label:"Guide-claies / guides télescopiques"},
+{label:"Manuel d'utilisation (valeur 25 €)"},
+]},
+{label:"Marques",children:[
+{label:"Bosch / Siemens"},{label:"Miele"},
+{label:"Neff (porte escamotable)"},
+{label:"AEG / Electrolux"},{label:"Whirlpool"},
+{label:"De Dietrich"},
+]},
+{label:"États",children:[
+{label:"Propre — complet — fonctionnel"},
+{label:"Légèrement sale / résidus"},
+{label:"Taches de graisse incrustées"},
+{label:"Condensation entre vitrages de la porte"},
+{label:"Joint de porte usagé"},
+{label:"Ampoule non fonctionnelle"},
+{label:"Lèchefrite usagée (éclats d'émail)"},
+{label:"Non fonctionnel"},
+]},
+]},
+{label:"Hotte aspirante",children:[
+{label:"Types",children:[
+{label:"Extraction (air vers l'extérieur)"},
+{label:"Dépression / commune (sans moteur)"},
+{label:"Recyclage (filtre charbon)"},
+{label:"Hotte îlot"},
+]},
+{label:"Composants",children:[
+{label:"Carénage / habillage"},
+{label:"Filtre à graisse / filtre métallique",desc:"Amovible et lavable."},
+{label:"Filtre à charbon actif",desc:"Non lavable. À remplacer périodiquement."},
+{label:"Tubage d'évacuation"},
+{label:"Éclairage (ampoule / LED)"},
+]},
+{label:"États",children:[
+{label:"Propre — filtres propres — fonctionnelle"},
+{label:"Filtres légèrement graisseux"},
+{label:"Filtres saturés"},
+{label:"Carénage encrassé"},
+{label:"Non fonctionnelle"},
+]},
+]},
+{label:"Réfrigérateur",children:[
+{label:"Types",children:[
+{label:"Combiné réfrigérateur-congélateur"},
+{label:"Tiroir congélateur (bottom freezer)"},
+{label:"Américain / side-by-side"},
+{label:"Encastré"},
+]},
+{label:"Composants",children:[
+{label:"Clayettes / tablettes de verre"},
+{label:"Couvre-chants plastique blanc / chromé"},
+{label:"Bacs de rangement dans la porte"},
+{label:"Grille à œufs"},
+{label:"Tiroir à légumes / bac à fraîcheur"},
+{label:"Joue gauche / droite (carrosserie)"},
+{label:"Tige de dégivrage"},
+{label:"Ampoule intérieure"},
+]},
+{label:"États",children:[
+{label:"Propre — fonctionnel"},
+{label:"Légèrement encrassé"},
+{label:"Bac légèrement jauni"},
+{label:"Bac fissuré / cassé"},
+{label:"Couvre-chant manquant"},
+{label:"Givre important (congélateur)"},
+{label:"Joint de porte usagé"},
+{label:"Bruit anormal"},
+]},
+]},
+{label:"Évier et robinetterie cuisine",children:[
+{label:"Types d'éviers",children:[
+{label:"Inox 1 bac"},
+{label:"Inox 2 bacs (grand + petit)"},
+{label:"Céramique blanche"},
+{label:"Résine composite"},
+{label:"Pierre découpée"},
+]},
+{label:"Composants",children:[
+{label:"Grand bac / bac principal"},
+{label:"Égouttoir de l'évier"},
+{label:"Crépine passe-déchets"},
+{label:"Bonde"},
+{label:"Siphon"},
+{label:"Cache-siphon"},
+{label:"Col de cygne"},
+{label:"Douchette télescopique à main"},
+{label:"Mousseur"},
+]},
+{label:"États",children:[
+{label:"N'appelle pas de remarque"},
+{label:"Légères griffures d'usage"},
+{label:"Voile de calcaire"},
+{label:"Bac jauni par l'âge"},
+{label:"Éclat d'émail (céramique)"},
+{label:"Calcaire important / mousseur entartré"},
+{label:"Fuite au siphon"},
+{label:"Crépine absente"},
+]},
+]},
+{label:"Plan de travail",children:[
+{label:"Matériaux",children:[
+{label:"Stratifié / laminé"},{label:"Granite poli"},
+{label:"Marbre"},{label:"Quartz composite (Silestone)"},
+{label:"Béton ciré"},{label:"Bois massif / lamellé-collé"},
+{label:"Inox"},{label:"Résine coulée (Corian)"},
+]},
+{label:"Composants et jonctions",children:[
+{label:"Chant / tranche",desc:"Arête latérale. Zone sensible aux chocs."},
+{label:"Couvre-chant (aluminium / inox / ABS)"},
+{label:"Quart de rond",desc:"Profilé reliant le plan de travail à la crédence."},
+{label:"Joint de liaison silicone"},
+{label:"Décalage à la jonction",desc:"Différence de niveau entre deux segments."},
+]},
+{label:"États",children:[
+{label:"N'appelle pas de remarque"},
+{label:"Légères traces d'usure"},
+{label:"Tache persistante"},
+{label:"Brûlure"},
+{label:"Éclat / entaille"},
+{label:"Gonflement / délaminage"},
+{label:"Joint évidé / noirci"},
+{label:"Coup sur le chant"},
+]},
+]},
+{label:"Meubles de cuisine",children:[
+{label:"Types",children:[
+{label:"Meubles hauts"},{label:"Meubles bas"},
+{label:"Colonne (four, frigo)"},
+{label:"Meuble sous évier"},
+{label:"Meuble d'angle (Caroussel)"},
+]},
+{label:"Composants",children:[
+{label:"Caisson",desc:"Structure porteuse du meuble."},
+{label:"Vantail / battant"},
+{label:"Façade laquée / stratifiée / bois"},
+{label:"Poignée tubulaire métal chromé / blanc"},
+{label:"Charnière réglable 3D"},
+{label:"Tiroir"},
+{label:"Coulisse / glissière soft-close"},
+{label:"Fond du tiroir / face avant du tiroir"},
+{label:"Tablette / étagère intérieure"},
+{label:"Crémaillère"},
+{label:"Planche socle"},
+{label:"Tiroir postiche (décoratif)",desc:"Faux tiroir sous l'évier. Non fonctionnel."},
+{label:"Plateau tournant (Caroussel)"},
+]},
+{label:"Finitions façades",children:[
+{label:"Mélaminé blanc / bois"},
+{label:"Laqué mat / brillant"},
+{label:"Bois massif / placage"},
+{label:"Verre laqué"},
+{label:"Inox brossé"},
+{label:"Thermoformé (style shaker)"},
+]},
+{label:"États",children:[
+{label:"N'appelle pas de remarque"},
+{label:"Légères griffures de façade"},
+{label:"Éclat de façade"},
+{label:"Décollement de placage"},
+{label:"Charnière à régler / cassée"},
+{label:"Fond du tiroir fissuré"},
+{label:"Plinthe sous meubles décollée / empoussiérée"},
+{label:"Planche intermédiaire — auréole"},
+]},
+]},
+{label:"Crédence cuisine",children:[
+{label:"Matériaux",children:[
+{label:"Carrelage faïence"},
+{label:"Stratifié blanc"},
+{label:"Aluminium / inox"},
+{label:"Verre laqué"},
+{label:"Feuille alu gaufrée",desc:"Film aluminium gaufré collé. Économique."},
+{label:"Plaque aluminium sous hotte"},
+]},
+{label:"États",children:[
+{label:"N'appelle pas de remarque"},
+{label:"Légèrement encrassée"},
+{label:"Traces de graisse"},
+{label:"Joint évidé entre plan et crédence"},
+{label:"Carreau fissuré"},
+{label:"Absence de joint de liaison"},
+]},
+]},
+]},
+{label:"Cheminée et foyer",sub:"Manteau · Âtre · Conduit · Ramonage · Accessoires",children:[
+{label:"Types de foyers",children:[
+{label:"Cheminée ouverte / foyer ouvert",desc:"Feu à l'air libre. Rendement 10–15%. Ramonage annuel."},
+{label:"Foyer à cassette",desc:"Insert avec vitrage coulissant. Rendement 60–80%."},
+{label:"Insert (bois / gaz)"},
+{label:"Poêle à bois"},
+{label:"Poêle à granulés / pellets"},
+{label:"Cheminée à gaz"},
+{label:"Cheminée bioéthanol",desc:"Sans conduit. Décoratif uniquement."},
+{label:"Foyer double face"},
+{label:"Cheminée décorative (sans conduit)"},
+]},
+{label:"Composants du manteau",children:[
+{label:"Manteau de cheminée",desc:"Ensemble décoratif encadrant le foyer."},
+{label:"Jambage",desc:"Montant vertical de chaque côté. Supporte le linteau."},
+{label:"Linteau / poitrail",desc:"Élément horizontal au-dessus de l'ouverture."},
+{label:"Tablette de cheminée"},
+{label:"Trumeau",desc:"Espace au-dessus de la tablette (miroir, tableau…)."},
+{label:"Contrecœur",desc:"Paroi verticale du fond de l'âtre. Fonte ou brique réfractaire."},
+{label:"Âtre",desc:"Partie inférieure du foyer où brûle le feu."},
+{label:"Dalle de foyer / Devant de foyer",desc:"Protège le plancher des projections."},
+{label:"Retombée",desc:"Partie intérieure supérieure formant un coude vers le conduit."},
+{label:"Gorge",desc:"Courbure de transition entre foyer et conduit."},
+{label:"Registre / clapet de fermeture",desc:"Obture le conduit quand la cheminée n'est pas utilisée."},
+{label:"Cendrier / tiroir à cendres"},
+]},
+{label:"Matériaux du manteau",children:[
+{label:"Marbre blanc (veinures grises)"},
+{label:"Marbre avec veinures rouges"},
+{label:"Marbre noir de Belgique"},
+{label:"Pierre bleue"},
+{label:"Pierre naturelle calcaire"},
+{label:"Bois peint de ton blanc"},
+{label:"Bois vernis / ciré"},
+{label:"Plâtre / stuc"},
+{label:"Béton ciré"},
+{label:"Acier / fonte (style industriel)"},
+{label:"Brique apparente"},
+]},
+{label:"Conduit et ramonage",children:[
+{label:"Conduit de fumée",desc:"Gaine verticale d'évacuation. Maçonné, inox ou céramique."},
+{label:"Souche de cheminée",desc:"Partie du conduit au-dessus du toit."},
+{label:"Chapeau de cheminée",desc:"Couvre le sommet de la souche."},
+{label:"Tubage inox"},
+{label:"Ramonage",desc:"Nettoyage annuel obligatoire par professionnel agréé."},
+{label:"Attestation de ramonage fournie"},
+{label:"Attestation de ramonage absente"},
+{label:"Tirage",desc:"Capacité du conduit à aspirer les fumées."},
+{label:"Fuliginosité / créosote",desc:"Dépôt de goudron et suie. Risque d'incendie de cheminée."},
+{label:"Chapeau de cheminée absent"},
+]},
+{label:"États",children:[
+{label:"N'appelle pas de remarque"},
+{label:"Joints évidés"},
+{label:"Impacts millimétriques aux arêtes"},
+{label:"Éclat sur le marbre / la pierre"},
+{label:"Fissure sur le marbre (thermique)"},
+{label:"Peinture ternie (bois)"},
+{label:"Peinture défraîchie / peu couvrante"},
+{label:"Coulées de peinture sur le manteau"},
+{label:"Âtre propre — sans résidu"},
+{label:"Cendres résiduelles"},
+{label:"Suie sur les parois du foyer"},
+{label:"Contrecœur fissuré (thermique)"},
+{label:"Registre bloqué / non fonctionnel"},
+{label:"Tiroir à cendres présent / absent"},
+]},
+]},
+{label:"Escalier",sub:"Marches · Contremarches · Main courante · Garde-corps · Sécurité",children:[
+{label:"Types",children:[
+{label:"Droit"},
+{label:"À deux volées droites",desc:"Reliées par un palier de repos intermédiaire."},
+{label:"Quart tournant"},{label:"Demi-tournant"},
+{label:"Hélicoïdal / en colimaçon"},
+{label:"Suspendu",desc:"Marches fixées uniquement dans le mur."},
+{label:"Extérieur"},{label:"De cave"},
+]},
+{label:"Structure portante",children:[
+{label:"Limon du mur",desc:"Côté mur, encaissé dans la maçonnerie."},
+{label:"Limon du jour",desc:"Côté vide, supporte les balustres."},
+{label:"Limon à l'anglaise (crémaillère)",desc:"Découpé en dents de scie."},
+{label:"Limon à la française",desc:"Entailles en creux. Surface lisse côté jour."},
+{label:"Poteau de départ / intermédiaire / d'arrivée"},
+{label:"Axe central (colimaçon)"},
+]},
+{label:"Marches et contremarches",children:[
+{label:"Marche",desc:"Surface horizontale sur laquelle on pose le pied."},
+{label:"Giron",desc:"Profondeur horizontale d'une marche. Minimum 24 cm."},
+{label:"Contremarche",desc:"Partie verticale fermant l'espace entre deux marches."},
+{label:"Nez de marche",desc:"Partie avant en légère saillie."},
+{label:"Profilé antidérapant de nez de marche"},
+{label:"Marche palière"},
+{label:"Pas",desc:"Hauteur d'une marche. Entre 16 et 20 cm."},
+{label:"Emmarchement",desc:"Largeur utile entre les deux limons."},
+{label:"Volée",desc:"Ensemble de marches entre deux paliers."},
+{label:"Palier de repos"},
+{label:"Marche balancée / en éventail"},
+]},
+{label:"Main courante et garde-corps",children:[
+{label:"Garde-corps"},
+{label:"Main courante bois vitrifié mat"},
+{label:"Main courante fixée au mur"},
+{label:"Balustre",desc:"Montant vertical entre main courante et limon."},
+{label:"Balustrade"},
+{label:"Rampe"},
+{label:"Lisse supérieure / intermédiaire"},
+{label:"Garde-corps en verre trempé"},
+{label:"Garde-corps en câbles inox"},
+{label:"Balustrade fer — main courante bois"},
+{label:"Hauteur réglementaire : 100 cm minimum"},
+{label:"Écartement barreaux : max. 11 cm"},
+]},
+{label:"Matériaux",children:[
+{label:"Bois chêne (vitrifié mat)"},
+{label:"Bois hêtre / pin / sapin / noyer"},
+{label:"Marbre"},{label:"Pierre bleue"},
+{label:"Béton"},
+{label:"Métal / acier laqué"},
+{label:"Carrelage de marche"},
+{label:"Moquette sur escalier"},
+]},
+{label:"États des marches",children:[
+{label:"N'appelle pas de remarque"},
+{label:"Légère usure sur l'aire de foulée"},
+{label:"Vitrification éraillée (nez de marche)"},
+{label:"Griffures prononcées"},
+{label:"Tache auréolaire"},
+{label:"Tache de peinture"},
+{label:"Éclat de marbre"},
+{label:"Marche désolidarisée / qui grince"},
+{label:"Moquette usée / décollée"},
+{label:"Traces de passage d'insectes"},
+]},
+{label:"États main courante",children:[
+{label:"N'appelle pas de remarque"},
+{label:"Vernis éraillé en périphérie"},
+{label:"Peinture ternie (rampe métal)"},
+{label:"Peinture défraîchie / écaillée"},
+{label:"Balustre manquant"},
+{label:"Balustre descellé / instable"},
+{label:"Main courante instable"},
+{label:"Poteau de départ instable"},
+{label:"Rouille sur la rampe"},
+]},
+]},
+{label:"Balcon et terrasse",sub:"Sol · Garde-corps · Étanchéité · Équipements extérieurs",children:[
+{label:"Types d'espaces",children:[
+{label:"Balcon",desc:"Saillie horizontale en façade."},
+{label:"Terrasse"},
+{label:"Loggia",desc:"Balcon encastré dans le volume du bâtiment."},
+{label:"Toit-terrasse"},
+{label:"Terrasse sur plots"},
+{label:"Balcon attenant à la chambre"},
+{label:"Jardin"},{label:"Cour intérieure"},
+]},
+{label:"Revêtements de sol extérieur",children:[
+{label:"Klinkers (dalles terre cuite pressée)"},
+{label:"Dalles béton"},
+{label:"Carrelage grès-cérame extérieur"},
+{label:"Ardoise"},{label:"Granit (poli / flammé antidérapant)"},
+{label:"Pierre bleue"},
+{label:"Lattes bois traité (ipé, teck, pin autoclave)"},
+{label:"Caillebotis bois"},
+{label:"Caillebotis composite WPC"},
+{label:"Dalle sur plots"},
+{label:"Béton désactivé (graviers apparents)"},
+{label:"Pelouse / gazon synthétique"},
+]},
+{label:"État du sol extérieur",children:[
+{label:"N'appelle pas de remarque"},
+{label:"Légèrement empoussiéré"},
+{label:"Taches verdâtres (algues / mousse)"},
+{label:"Mousse importante"},
+{label:"Dalle fissurée"},
+{label:"Dalle descellée / bascule"},
+{label:"Dalles inégales (désaffleur)"},
+{label:"Carreau fissuré"},
+{label:"Bois grisé (naturellement)"},
+{label:"Bois fendu / fissuré"},
+{label:"Bois vermoulu / pourri"},
+{label:"Fixation de latte manquante"},
+]},
+{label:"Garde-corps extérieur",children:[
+{label:"Types",children:[
+{label:"Fer forgé (sous peinture noire)"},
+{label:"Métal laqué blanc / gris"},
+{label:"Aluminium anodisé gris"},
+{label:"Acier inox brossé"},
+{label:"Verre trempé 10–12 mm"},
+{label:"Câbles inox"},
+{label:"Béton / parapet"},
+]},
+{label:"Sécurité",children:[
+{label:"Hauteur : minimum 100 cm"},
+{label:"Écartement barreaux : moins de 11 cm"},
+{label:"Stable et solidement ancré"},
+{label:"Barreau manquant — anomalie de sécurité"},
+]},
+{label:"États",children:[
+{label:"N'appelle pas de remarque — stable"},
+{label:"Peinture ternie"},
+{label:"Peinture écaillée / rouille débutante"},
+{label:"Rouille prononcée"},
+{label:"Barreau manquant"},
+{label:"Barreau descellé"},
+{label:"Garde-corps instable"},
+{label:"Panneau vitré fissuré"},
+{label:"Calcaire sur verre"},
+{label:"Main courante — vernis éraillé"},
+]},
+]},
+{label:"Étanchéité et drainage",children:[
+{label:"Étanchéité"},
+{label:"Relevé d'étanchéité",desc:"Bande remontant le long des murs (min. 10–15 cm)."},
+{label:"Membrane d'étanchéité"},
+{label:"Chape de pente (min. 1,5 %)"},
+{label:"Bouche d'évacuation / crapaudine"},
+{label:"Descente d'eaux pluviales"},
+{label:"Trop-plein de sécurité"},
+{label:"Flaques / rétention d'eau"},
+{label:"Seuil de porte / bavette de seuil"},
+{label:"Soffite / plafond de balcon",desc:"Partie inférieure du balcon vu d'en dessous."},
+{label:"Nez de dalle",desc:"Chant avant de la dalle. Peut être éclaté."},
+]},
+{label:"Équipements extérieurs",children:[
+{label:"Portail motorisé (télécommande fournie)"},
+{label:"Portillon + serrure + clé"},
+{label:"Robinet extérieur / de jardin"},
+{label:"Tuyau d'arrosage + dévidoir"},
+{label:"Éclairage extérieur (applique IP44)"},
+{label:"Détecteur de mouvement"},
+{label:"Paillasson en coco"},
+{label:"Coffrage en lattis de bois"},
+{label:"Câbles électriques apparents"},
+{label:"Barbecue fixe"},
+{label:"Abri de jardin / pergola"},
+]},
+]},
+{label:"Divers et sécurité",sub:"Interphone · Alarme · Boîte aux lettres · Thermostat",children:[
+{label:"Interphone et sonnette",children:[
+{label:"Marque Bticino / Urmet / Fermax"},
+{label:"Audio uniquement"},
+{label:"Audio + vidéo"},
+{label:"Avec déverrouillage à distance"},
+{label:"Boîtier de sonnette"},
+{label:"Légèrement marqué par l'usage"},
+{label:"Maculé de peinture"},
+{label:"Réputé fonctionnel"},
+]},
+{label:"Alarme et détection",children:[
+{label:"Clapet présent et propre"},
+{label:"Clapet cassé / encrassé"},
+{label:"Détecteur de mouvement visible"},
+{label:"Réputé fonctionnel"},
+{label:"Code non communiqué"},
+{label:"Thermostat — clapet fonctionnel"},
+{label:"Détecteur d'ouverture sur châssis"},
+]},
+{label:"Boîte aux lettres",children:[
+{label:"Boîte individuelle / collective"},
+{label:"Boîte encastrée / en saillie"},
+{label:"Métal peint / inox / plastique"},
+{label:"Clé fournie — fonctionne correctement"},
+{label:"Clé difficile à tourner"},
+{label:"Serrure absente"},
+{label:"Endommagée / traces de vandalisme"},
+]},
+{label:"Thermostat",children:[
+{label:"Thermostat mécanique"},
+{label:"Thermostat numérique"},
+{label:"Thermostat connecté / programmable"},
+{label:"Clapet présent et propre"},
+{label:"Réputé fonctionnel"},
+]},
+{label:"Cave et parking",children:[
+{label:"Cave n° (numéro à noter)"},
+{label:"Emplacement parking n° (à noter)"},
+{label:"Murs à l'état brut"},
+{label:"Sol béton / carrelage béton"},
+{label:"Charpente apparente (grenier)"},
+]},
+]},
+]};
+
+let path=[],expanded=null,searchQ="";
+
+function getNode(p){let n=T;for(const i of p)n=n.children[i];return n;}
+
+function doSearch(q){searchQ=q.trim().toLowerCase();expanded=null;render();}
+
+function searchAll(node,q,results=[],p=[]){
+  if(node.label&&node.label.toLowerCase().includes(q))results.push({node,path:[...p]});
+  if(node.children)node.children.forEach((c,i)=>searchAll(c,q,results,[...p,i]));
+  return results;
+}
+
+function render(){
+  const nodesEl=document.getElementById("nodes");
+  const lvlEl=document.getElementById("lvl");
+  const bk=document.getElementById("bk");
+  const bc=document.getElementById("bc");
+  bk.disabled=path.length===0&&!searchQ;
+  bc.innerHTML="";
+
+  if(!searchQ){
+    const crumbs=[{label:"État des lieux",idx:null}];
+    for(let i=0;i<path.length;i++){let n=T;for(let j=0;j<=i;j++)n=n.children[path[j]];crumbs.push({label:n.label,idx:i});}
+    crumbs.forEach((c,ci)=>{
+      if(ci>0){const s=document.createElement("span");s.className="bs";s.textContent="›";bc.appendChild(s);}
+      const el=document.createElement("span");el.className="bi";el.textContent=c.label;
+      el.onclick=()=>{path=c.idx===null?[]:path.slice(0,c.idx+1);expanded=null;render();};
+      bc.appendChild(el);
+    });
+  }
+
+  nodesEl.innerHTML="";
+
+  if(searchQ){
+    const results=searchAll(T,searchQ);
+    lvlEl.textContent=results.length+" résultat"+(results.length>1?"s":"")+" pour \""+searchQ+"\"";
+    if(!results.length){nodesEl.innerHTML='<div class="hint">Aucun terme trouvé.</div>';return;}
+    results.forEach(({node,path:rp})=>{
+      const hasChildren=node.children&&node.children.length>0;
+      const div=document.createElement("div");
+      div.className="nd"+(hasChildren?" hc":"");
+      div.style.borderColor="#C08A2E";
+      const nl=document.createElement("div");nl.className="nl";nl.style.background="#C08A2E";
+      const nb=document.createElement("div");nb.className="nb";
+      const nm=document.createElement("div");nm.className="nm";nm.textContent=node.label;
+      nb.appendChild(nm);
+      const bread=rp.slice(0,-1).map((_,i)=>{let n=T;for(let j=0;j<=i;j++)n=n.children[rp[j]];return n.label;}).join(" › ");
+      if(bread){const ns=document.createElement("div");ns.className="ns";ns.textContent=bread;nb.appendChild(ns);}
+      if(node.desc){const dd=document.createElement("div");dd.className="dd";dd.textContent=node.desc;nb.appendChild(dd);}
+      const na=document.createElement("div");na.className="na";
+      const btn=document.createElement("button");btn.className="btn";
+      btn.textContent=hasChildren?"→":"i";
+      btn.onclick=(e)=>{e.stopPropagation();if(hasChildren){searchQ="";document.getElementById("src").value="";path=[...rp];expanded=null;render();}};
+      na.appendChild(btn);
+      div.appendChild(nl);div.appendChild(nb);div.appendChild(na);
+      div.onclick=()=>{if(hasChildren){searchQ="";document.getElementById("src").value="";path=[...rp];expanded=null;render();}};
+      nodesEl.appendChild(div);
+    });
+    return;
+  }
+
+  const node=path.length?getNode(path):T;
+  const children=node.children||[];
+  if(path.length===0)lvlEl.textContent="Catégories principales";
+  else{const n=getNode(path);lvlEl.textContent=n.label+(n.sub?" — "+n.sub:"");}
+  if(!children.length){nodesEl.innerHTML='<div class="hint">Aucun sous-terme.</div>';return;}
+
+  children.forEach((child,i)=>{
+    const hasChildren=child.children&&child.children.length>0;
+    const div=document.createElement("div");
+    div.className="nd"+(hasChildren?" hc":" lf");
+    const nl=document.createElement("div");nl.className="nl";
+    const nb=document.createElement("div");nb.className="nb";
+    const nm=document.createElement("div");nm.className="nm";nm.textContent=child.label;
+    nb.appendChild(nm);
+    if(child.sub){const ns=document.createElement("div");ns.className="ns";ns.textContent=child.sub;nb.appendChild(ns);}
+    const na=document.createElement("div");na.className="na";
+    const btn=document.createElement("button");btn.className="btn";
+    const key=path.join(",")+","+i;
+    if(hasChildren){
+      btn.textContent="+";
+      btn.onclick=(e)=>{e.stopPropagation();path=[...path,i];expanded=null;render();};
+      div.onclick=()=>{path=[...path,i];expanded=null;render();};
+    } else {
+      btn.textContent="i";btn.style.fontSize="11px";
+      btn.onclick=(e)=>{e.stopPropagation();expanded=expanded===key?null:key;render();};
+      div.onclick=()=>{expanded=expanded===key?null:key;render();};
+    }
+    na.appendChild(btn);
+    div.appendChild(nl);div.appendChild(nb);div.appendChild(na);
+    nodesEl.appendChild(div);
+    if(!hasChildren&&child.desc&&expanded===key){
+      const dd=document.createElement("div");dd.className="dd";dd.textContent=child.desc;
+      div.appendChild(dd);
+    }
+  });
+}
+
+function goBack(){
+  if(searchQ){searchQ="";document.getElementById("src").value="";expanded=null;render();return;}
+  if(path.length>0){path=path.slice(0,-1);expanded=null;render();}
+}
+
+render();
+</script>
+</body>
+</html>
